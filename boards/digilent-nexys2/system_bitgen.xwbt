@@ -1,0 +1,7 @@
+INFILE=/home/david/Devel/arch/fpga/code/Nexys2/lm32/boards/digilent-nexys2/system-routed.ncd
+OUTFILE=/home/david/Devel/arch/fpga/code/Nexys2/lm32/boards/digilent-nexys2/system.bit
+FAMILY=Spartan3E
+PART=xc3s1200e-4fg320
+WORKINGDIR=/home/david/Devel/arch/fpga/code/Nexys2/lm32/boards/digilent-nexys2
+LICENSE=WebPack
+USER_INFO=175172586_0_0_217
