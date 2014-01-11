@@ -2,9 +2,6 @@
 NET "clk" LOC = "B8" | IOSTANDARD = LVCMOS33 ;
 NET "clk" PERIOD = 20 HIGH 50%;
 
-# ==== UART ====
-NET "uart_rxd" LOC = "U6" | IOSTANDARD = LVTTL ;
-NET "uart_txd" LOC = "P9" | IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;
 
 # ==== LED output ===
 NET "led<7>" LOC = "P4" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;

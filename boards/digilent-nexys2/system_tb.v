@@ -1,218 +1,135 @@
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-`timescale 1 ns / 100 ps
+`timescale 10 ns / 1 ns
 
 module system_tb;
 
-//----------------------------------------------------------------------------
-// Parameter (may differ for physical synthesis)
-//----------------------------------------------------------------------------
-parameter tck              = 20;       // clock period in ns
-parameter uart_baud_rate   = 1152000;  // uart baud rate for simulation 
+parameter tck      = 10;                    // clock period in ns
+parameter clk_freq = 1000000000 / tck;      // Frequenzy in HZ
 
-parameter clk_freq = 1000000000 / tck; // Frequenzy in HZ
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-reg        clk;
-reg        reset;
-wire [3:0] btn;
-wire [7:0] sw;
-wire [7:0] led;
+reg          clk;
+reg  [15:0]  cycle;
+reg          reset;
 
-//----------------------------------------------------------------------------
-// UART STUFF (testbench uart, simulating a comm. partner)
-//----------------------------------------------------------------------------
-wire         uart_rxd;
-wire         uart_txd;
 
-reg          tx_wr;
-wire         tx_busy;
-reg    [7:0] tx_data;
+wire [2:0]   btn;
+reg  [2:0]   btn_reg;
+assign       btn = btn_reg;
 
-wire   [7:0] rx_data;
-wire         rx_avail;
-reg          rx_ack;
+wire [15:0]  sram_dat;
+reg  [15:0]  sram_dat_reg;
+assign       sram_dat = (~sram_oe_n) ? 16'hf0 : (~sram_we_n) ? sram_dat_reg : 16'bz;
 
-uart #(
-	.freq_hz(  clk_freq       ),
-	.baud(     uart_baud_rate )
-) tb_uart (
-	.reset(    reset     ),
-	.clk(      clk       ),
-	//
-	.uart_txd( uart_rxd  ),
-	.uart_rxd( uart_txd  ),
-	//
-	.rx_data(  rx_data   ),
-	.rx_avail( rx_avail  ),
-	.rx_error( rx_error  ),
-	.rx_ack(   rx_ack    ),
-	.tx_data(  tx_data   ),
-	.tx_wr(    tx_wr     ),
-	.tx_busy(  tx_busy   )
-);
+wire [7:0]   sw;
+reg  [7:0]   sw_reg;
+assign       sw = sw_reg;
 
-//----------------------------------------------------------------------------
-// UART helper functions
-//----------------------------------------------------------------------------
-always @(posedge clk)
-begin
-	if (rx_avail && ~rx_ack) begin
-		$display( "Reading from UART: rx_data=%h", rx_data );
-		rx_ack <= 1;
-	end else 
-		rx_ack <= 0;
-end
+wire [7:0]   led;
 
-task uart_send;
-	input [7:0] byte;
-	begin
-		while (tx_busy) begin
-			@(posedge clk);
-		end
+wire [17:0]  sram_adr;
 
-		@(negedge clk);
-		$display( "Writing to UART: tx_data=%h", byte );
+// ctrl
 
-		tx_data = byte;
-		tx_wr   = 1;
-		#(tck)
-		tx_wr   = 0;
-	end
-endtask
+wire  		 sram_we_n;
+wire  		 sram_oe_n;
+wire  		 sram_ce_n;
+wire  		 sram_ub;
+wire  		 sram_lb;
 
-task uart_wait_tx;
-	begin
-		while (tx_busy) begin
-			@(posedge clk);
-		end
 
-		$display( "Writing to UART: done." );
-	end
-endtask
-
-//----------------------------------------------------------------------------
-// Static RAM
-//----------------------------------------------------------------------------
-wire   [17:0] sram_adr;
-wire   [31:0] sram_dat;
-wire    [3:0] sram_be_n;
-wire    [1:0] sram_ce_n;
-wire          sram_oe_n;
-wire          sram_we_n;
-
-sram16 #(
-	.adr_width( 18 )
-) ram1 (
-	.adr(    sram_adr        ),
-	.dat(    sram_dat[31:16] ),
-	.ub_n(   sram_be_n[3]    ),
-	.lb_n(   sram_be_n[2]    ),
-	.cs_n(   sram_ce_n[1]    ),
-	.oe_n(   sram_oe_n       ),
-	.we_n(   sram_we_n       )
-);
-
-sram16 #(
-	.adr_width( 18 )
-) ram0 (
-	.adr(    sram_adr        ),
-	.dat(    sram_dat[15:0]  ),
-	.ub_n(   sram_be_n[1]    ),
-	.lb_n(   sram_be_n[0]    ),
-	.cs_n(   sram_ce_n[0]    ),
-	.oe_n(   sram_oe_n       ),
-	.we_n(   sram_we_n       )
-);
-
-//----------------------------------------------------------------------------
-// Decive Under Test 
-//----------------------------------------------------------------------------
-system #(
-	.clk_freq(           clk_freq         ),
-	.uart_baud_rate(     uart_baud_rate   )
-) dut  (
-	.clk(          clk    ),
-	// Debug
-	.led(          led    ),
-	.btn(          btn    ),
-	.sw(           sw     ),
-	// Uart
-	.uart_rxd(  uart_rxd  ),
-	.uart_txd(  uart_txd  ),
-	// SRAM
-	.sram_adr(  sram_adr  ),
-	.sram_dat(  sram_dat  ),
-	.sram_be_n( sram_be_n ),
-	.sram_ce_n( sram_ce_n ),
-	.sram_oe_n( sram_oe_n ),
-	.sram_we_n( sram_we_n )
-);
-
-assign btn = { 3'b0, reset };
-assign sw  = { 8'b00000001 };
-
-/* Clocking device */
-initial         clk <= 0;
-always #(tck/2) clk <= ~clk;
-
-/* Simulation setup */
+// inital values
 initial begin
-	$dumpfile("system_tb.vcd");
-	$dumpvars(-1, dut);
-
-	// reset
-	#0  reset <= 1;
-	#80 reset <= 0;
-
-
-	// send select value
-	uart_send( 'h00 );
-	uart_wait_tx;
-	#(tck*5000)
-
-	// send trigger mask
-	uart_send( 'hFF );
-	uart_wait_tx;
-	#(tck*5000)
-
-	// send trigger comop
-	uart_send( 'h80 );
-	uart_wait_tx;
-	#(tck*5000)
-
-	// send pretrigger value
-	uart_send( 'h00 );
-	uart_wait_tx;
-	#(tck*5000)
-
-
-	#(tck*30000) $finish;
+    clk <=  1'b0;
+    cycle <= 1'b0;
+    reset <= 1'b0;
+    //sw_reg <= 8'b0;
+    //btn_reg <= 3'b0;
+   
 end
 
-//------------------------------------------------------------------
-// Monitor Wishbone transactions
-//------------------------------------------------------------------
-always @(posedge clk)
+// the device under testing
+sram_ctrl_test dut (
+	.clk(clk),
+	.reset(reset),
+	.sw(sw),
+	.btn(btn),
+	.led(led),
+	.sram_adr(sram_adr),
+	.sram_we_n(sram_we_n),
+	.sram_oe_n(sram_oe_n),
+	.sram_dat(sram_dat),
+	.sram_ce_n(sram_ce_n),
+	.sram_ub(sram_ub),
+	.sram_lb(sram_lb)
+);	
+
+// generate clock
+always begin
+    #(tck/2) 
+    clk <= ~clk;
+    if (clk)
+        cycle <= cycle + 1;
+end
+
+initial begin
+    
+    $dumpfile("system_tb.vcd");
+	$dumpvars(0, dut);
+    reset = 1'b1;
+    #tck
+    reset = 1'b0;
+    #tck
+    sw_reg = 8'hf0;
+    btn_reg = 3'b001;
+    
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    sw_reg = 8'hff;
+    btn_reg = 3'b010;
+    
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    btn_reg = 3'b100;
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    #tck
+    
+    $finish;
+end
+
+
+
+always @clk 
 begin
-	if (dut.lm32d_ack) begin
-		$display( "LM32D transaction: ADR=%x WE=%b DAT=%x", 
-		            dut.lm32d_adr, dut.lm32d_we, 
-		            (dut.lm32d_we) ? dut.lm32d_dat_w : dut.lm32d_dat_r );
-	end
+		$display( "cycle=%d clk=%b reset=%b sw=%b btn=%b led=%b | adr=%h dat=%h we=%b oe=%b ce=%b",
+            cycle,
+            dut.clk,
+            dut.reset,
+            dut.sw,
+            dut.btn,
+            dut.led,
+            dut.sram_adr, 
+            dut.sram_dat,
+            dut.sram_we_n,
+            dut.sram_oe_n,
+            dut.sram_ce_n,
+       );
+
 end
-
-
-always @(posedge clk)
-begin
-	if (dut.lm32i_ack) begin
-		$display( "LM32I transaction: ADR=%x WE=%b DAT=%x", 
-		            dut.lm32i_adr, dut.lm32i_we, 
-		            (dut.lm32i_we) ? dut.lm32i_dat_w : dut.lm32i_dat_r );
-	end
-end
-
-
 endmodule

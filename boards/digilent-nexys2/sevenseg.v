@@ -3,7 +3,7 @@ module gpio_sevenseg
 	input           clk_i, 
 	output reg      [7:0] seg,
 	output          [3:0] an,
-    input           [15:0] gpio
+  input           [15:0] gpio
 );
 
 reg [16:0] counter;
