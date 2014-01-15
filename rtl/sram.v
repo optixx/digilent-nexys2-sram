@@ -4,15 +4,15 @@ module sram_ctrl
     input wire clk, reset,
     // to/from main system
     input wire mem, rw,
-    input wire [17:0] addr,
-    input wire [15:0] data_f2s,
+    input wire [18:0] addr,
+    input wire [8:0] data_f2s,
     output reg ready,
-    output wire [15:0] data_s2f_r, data_s2f_ur,
+    output wire [8:0] data_s2f_r, data_s2f_ur,
     // to/from sram chip
-    output wire [17:0] ad,
+    output wire [18:0] ad,
     output wire we_n, oe_n,
     // sram chip a
-    inout wire [15:0] dio_a,
+    inout wire [8:0] dio_a,
     output wire  ce_a_n, ub_a_n, lb_a_n
    );
 
@@ -26,9 +26,9 @@ module sram_ctrl
 
    // signal declaration
    reg [2:0] state_reg, state_next;
-   reg [15:0] data_f2s_reg, data_f2s_next;
-   reg [15:0] data_s2f_reg, data_s2f_next;
-   reg [17:0] addr_reg, addr_next;
+   reg [8:0] data_f2s_reg, data_f2s_next;
+   reg [8:0] data_s2f_reg, data_s2f_next;
+   reg [18:0] addr_reg, addr_next;
    reg we_buf, oe_buf, tri_buf;
    reg we_reg, oe_reg, tri_reg;
 
@@ -131,6 +131,6 @@ module sram_ctrl
    assign ce_a_n = 1'b0;
    assign ub_a_n = 1'b0;
    assign lb_a_n = 1'b0;
-   assign dio_a = (~tri_reg) ? data_f2s_reg : 16'bz;
+   assign dio_a = (~tri_reg) ? data_f2s_reg : 8'bz;
 
 endmodule

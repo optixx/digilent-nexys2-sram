@@ -4,16 +4,16 @@ module sram_ctrl_test(
     input wire [7:0] sw,
     input wire [2:0] btn,
     output wire [7:0] led,
-    output wire [17:0] sram_adr,
+    output wire [18:0] sram_adr,
     output wire sram_we_n, sram_oe_n,
-    inout wire [15:0] sram_dat,
+    inout wire [8:0] sram_dat,
     output wire sram_ce_n, sram_ub, sram_lb
 );
 
    // signal declaration
-   wire [17:0] addr;
-   wire [15:0] data_s2f;
-   reg [15:0] data_f2s;
+   wire [18:0] addr;
+   wire [8:0] data_s2f;
+   reg [8:0] data_f2s;
    reg mem, rw;
    reg [7:0] data_reg;
    wire [2:0] db_btn;
@@ -45,7 +45,7 @@ module sram_ctrl_test(
          data_reg <= sw;
 
    // address
-   assign addr = {10'b0, sw};
+   assign addr = {11'b0, sw};
 
    //
    always @*
@@ -55,7 +55,7 @@ module sram_ctrl_test(
         begin
            mem = 1'b1;
            rw = 1'b0;
-           data_f2s = {8'b0, data_reg};
+           data_f2s = data_reg;
         end
      else if (db_btn[2]) // read
         begin
