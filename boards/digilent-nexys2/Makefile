@@ -1,20 +1,20 @@
-VINCDIR=                                  
+VINCDIR=
 
 SYN_SRC=
 
 SIM_SRC=                                  \
-	system_tb.v                           
+	system_tb.v
 
 SRC=                                      \
 	system.v 							  \
 	sevenseg.v                            \
 	../../rtl/sram.v                      \
-	../../rtl/debounce.v                  
+	../../rtl/debounce.v
 
 
 #############################################################################
 # Syntheis constants
-SYNCLEAN=system.bgn system.drc system.mrp system.ngd system.pcf 
+SYNCLEAN=system.bgn system.drc system.mrp system.ngd system.pcf
 SYNCLEAN+=system.bld system.lso system.ncd system.ngm system.srp
 SYNCLEAN+=system.bit system_signalbrowser.* system-routed_pad.tx
 SYNCLEAN+=system.map system_summary.xml timing.twr
@@ -22,7 +22,7 @@ SYNCLEAN+=system-routed* system_usage* system.ngc param.opt netlist.lst
 SYNCLEAN+=xst system.prj system*.xrpt smartpreview.twr system.svf _impactbatch.log
 
 USAGE_DEPTH=0
-SMARTGUIDE= 
+SMARTGUIDE=
 
 #############################################################################
 # Simulation constants
@@ -32,9 +32,11 @@ CVER=cver
 GTKWAVE=gtkwave
 IVERILOG=iverilog
 VVP=vvp
-	
+
 #############################################################################
-# 
+#
+.PHONY: clean view sim
+
 sim: system_tb.vcd
 syn: system.bit
 view: system_tb.view
@@ -102,4 +104,3 @@ upload:
 clean:
 	rm -Rf $(SYNCLEAN) $(SIMCLEAN)
 
-.PHONY: clean view

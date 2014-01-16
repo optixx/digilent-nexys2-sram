@@ -17,9 +17,10 @@ reg  [7:0]  sw_reg;
 assign      sw = sw_reg;
 wire [7:0]  led;
 
-wire [8:0]  sram_dat;
-reg  [8:0]  sram_dat_reg;
-assign      sram_dat = (~sram_oe_n) ? 8'hf0 : (~sram_we_n) ? sram_dat_reg : 16'bz;
+wire [7:0]  sram_dat;
+reg  [7:0]  sram_dat_reg;
+assign      sram_dat = (~sram_oe_n) ? 8'hf0 : (~sram_we_n) ? sram_dat_reg : 8'bz;
+//assign sram_dat = 8'bz;
 wire [18:0] sram_adr;
 
 // ctrl
@@ -28,11 +29,14 @@ wire        sram_oe_n;
 wire        sram_ce_n;
 wire        sram_ub;
 wire        sram_lb;
+wire        bus_dir;
 
 initial begin
     clk <=  1'b0;
     cycle <= 1'b0;
     reset <= 1'b0;
+    sw_reg <= 8'b0;
+    btn_reg <= 3'b0;
 end
 
 // the device under testing
@@ -48,7 +52,8 @@ sram_ctrl_test dut (
     .sram_dat(sram_dat),
     .sram_ce_n(sram_ce_n),
     .sram_ub(sram_ub),
-    .sram_lb(sram_lb)
+    .sram_lb(sram_lb),
+    .bus_dir(bus_dir)
 );
 
 // generate clock
@@ -63,11 +68,12 @@ end
 initial begin
     $dumpfile("system_tb.vcd");
     $dumpvars(0, dut);
+    #tck
     reset = 1'b1;
     #tck
     reset = 1'b0;
     #tck
-    sw_reg = 8'hf0;
+    sw_reg = 8'haa;
     btn_reg = 3'b001;
 
     #tck
@@ -101,22 +107,22 @@ initial begin
     $finish;
 end
 
-always @clk
+always @(posedge clk)
 begin
-        $display( "cycle=%d clk=%b reset=%b sw=%b btn=%b led=%b | adr=%h dat=%h %b we=%b oe=%b ce=%b",
-            cycle,
-            dut.clk,
-            dut.reset,
-            dut.sw,
-            dut.btn,
-            dut.led,
-            dut.sram_adr,
-            dut.sram_dat,
-            dut.sram_dat,
-            dut.sram_we_n,
-            dut.sram_oe_n,
-            dut.sram_ce_n,
-       );
+    $display( "cycle=%d clk=%b reset=%b sw=%b btn=%b led=%b | adr=%h dat=%h %b we=%b oe=%b dir=%b",
+        cycle,
+        dut.clk,
+        dut.reset,
+        dut.sw,
+        dut.btn,
+        dut.led,
+        dut.sram_adr,
+        dut.sram_dat,
+        dut.sram_dat,
+        dut.sram_we_n,
+        dut.sram_oe_n,
+        dut.bus_dir,
+   );
 
 end
 endmodule

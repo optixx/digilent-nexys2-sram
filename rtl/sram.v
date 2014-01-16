@@ -5,15 +5,19 @@ module sram_ctrl
     // to/from main system
     input wire mem, rw,
     input wire [18:0] addr,
-    input wire [8:0] data_f2s,
+    input wire [7:0] data_f2s,
     output reg ready,
-    output wire [8:0] data_s2f_r, data_s2f_ur,
+    output wire [7:0] data_s2f_r,
+    output wire [7:0] data_s2f_ur,
     // to/from sram chip
     output wire [18:0] ad,
     output wire we_n, oe_n,
     // sram chip a
-    inout wire [8:0] dio_a,
-    output wire  ce_a_n, ub_a_n, lb_a_n
+    inout wire [7:0] dio_a,
+    output wire  ce_a_n,
+    output wire  ub_a_n,
+    output wire  lb_a_n,
+    output wire  bus_dir
    );
 
    // symbolic state declaration
@@ -26,11 +30,11 @@ module sram_ctrl
 
    // signal declaration
    reg [2:0] state_reg, state_next;
-   reg [8:0] data_f2s_reg, data_f2s_next;
-   reg [8:0] data_s2f_reg, data_s2f_next;
+   reg [7:0] data_f2s_reg, data_f2s_next;
+   reg [7:0] data_s2f_reg, data_s2f_next;
    reg [18:0] addr_reg, addr_next;
-   reg we_buf, oe_buf, tri_buf;
-   reg we_reg, oe_reg, tri_reg;
+   reg we_buf, oe_buf, tri_buf, bus_dir_buf;
+   reg we_reg, oe_reg, tri_reg, bus_dir_reg;
 
    // body
    // FSMD state & data registers
@@ -44,6 +48,7 @@ module sram_ctrl
             tri_reg <= 1'b1;
             we_reg <= 1'b1;
             oe_reg <= 1'b1;
+            bus_dir_reg <= 1'b1;
          end
       else
          begin
@@ -54,6 +59,7 @@ module sram_ctrl
             tri_reg <= tri_buf;
             we_reg <= we_buf;
             oe_reg <= oe_buf;
+            bus_dir_reg <= bus_dir_buf;
          end
 
    // FSMD next-state logic
@@ -103,6 +109,7 @@ module sram_ctrl
       tri_buf = 1'b1;  // signals are active low
       we_buf = 1'b1;
       oe_buf = 1'b1;
+      bus_dir_buf = 1'b0;
       case (state_next)
          idle:
             oe_buf = 1'b1;
@@ -110,9 +117,13 @@ module sram_ctrl
             begin
                tri_buf = 1'b0;
                we_buf = 1'b0;
+               bus_dir_buf = 1'b1;
             end
          wr2:
-            tri_buf = 1'b0;
+            begin
+                bus_dir_buf = 1'b1;
+                tri_buf = 1'b0;
+            end
          rd1:
             oe_buf = 1'b0;
          rd2:
@@ -127,6 +138,7 @@ module sram_ctrl
    assign we_n = we_reg;
    assign oe_n = oe_reg;
    assign ad = addr_reg;
+   assign bus_dir = bus_dir_reg;
    // i/o for sram chip a
    assign ce_a_n = 1'b0;
    assign ub_a_n = 1'b0;
