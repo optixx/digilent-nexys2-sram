@@ -11,7 +11,10 @@ module sram_ctrl_test(
     output wire sram_ce_n,
     output wire sram_ub,
     output wire sram_lb,
-    output wire bus_dir
+    output wire bus_tr1,
+    output wire bus_oe_n1,
+    output wire bus_tr2,
+    output wire bus_oe_n2
 );
 
    // signal declaration
@@ -38,7 +41,10 @@ module sram_ctrl_test(
         .ce_a_n(sram_ce_n),
         .ub_a_n(sram_ub),
         .lb_a_n(sram_lb),
-        .bus_dir(bus_dir)
+        .bus_tr1(bus_tr1),
+        .bus_oe_n1(bus_oe_n1),
+        .bus_tr2(bus_tr2),
+        .bus_oe_n2(bus_oe_n2)
     );
 
     debounce deb_unit0 (

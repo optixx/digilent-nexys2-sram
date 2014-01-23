@@ -29,7 +29,10 @@ wire        sram_oe_n;
 wire        sram_ce_n;
 wire        sram_ub;
 wire        sram_lb;
-wire        bus_dir;
+wire        bus_tr1;
+wire        bus_tr2;
+wire        bus_oe_n1;
+wire        bus_oe_n2;
 
 initial begin
     clk <=  1'b0;
@@ -53,7 +56,10 @@ sram_ctrl_test dut (
     .sram_ce_n(sram_ce_n),
     .sram_ub(sram_ub),
     .sram_lb(sram_lb),
-    .bus_dir(bus_dir)
+    .bus_tr1(bus_tr1),
+    .bus_oe_n1(bus_oe_n1),
+    .bus_tr2(bus_tr2),
+    .bus_oe_n2(bus_oe_n2)
 );
 
 // generate clock
@@ -109,7 +115,7 @@ end
 
 always @(posedge clk)
 begin
-    $display( "cycle=%d clk=%b reset=%b sw=%b btn=%b led=%b | adr=%h dat=%h %b we=%b oe=%b dir=%b",
+    $display( "cycle=%d clk=%b reset=%b sw=%b btn=%b led=%b | adr=%h %b dat=%h %b we=%b oe=%b tr1=%b oe1=%b tr2=%b oe2=%b",
         cycle,
         dut.clk,
         dut.reset,
@@ -117,11 +123,15 @@ begin
         dut.btn,
         dut.led,
         dut.sram_adr,
+        dut.sram_adr,
         dut.sram_dat,
         dut.sram_dat,
         dut.sram_we_n,
         dut.sram_oe_n,
-        dut.bus_dir,
+        dut.bus_tr1,
+        dut.bus_oe_n1,
+        dut.bus_tr2,
+        dut.bus_oe_n2
    );
 
 end
