@@ -2,13 +2,13 @@ VINCDIR=
 
 SYN_SRC=
 
-SIM_SRC=                                  \
+SIM_SRC= \
 	system_tb.v
 
-SRC=                                      \
-	system.v 							  \
-	sevenseg.v                            \
-	../../rtl/sram.v                      \
+SRC= \
+	system.v \
+	sevenseg.v \
+	../../rtl/sram.v \
 	../../rtl/debounce.v
 
 
@@ -34,7 +34,7 @@ IVERILOG=iverilog
 VVP=vvp
 
 #############################################################################
-#
+
 .PHONY: clean view sim
 
 sim: system_tb.vcd
@@ -47,7 +47,7 @@ view: system_tb.view
 system_tb.vvp: $(SRC) $(SIM_SRC)
 	rm -f $@.list
 	@for i in `echo $^`; do \
-	    echo $$i >> $@.list; \
+		echo $$i >> $@.list; \
 	done
 	$(IVERILOG) -o $@ $(VINCDIR) -c $@.list -s $(@:.vvp=)
 
@@ -60,7 +60,7 @@ system_tb.vvp: $(SRC) $(SIM_SRC)
 system.prj: $(SRC) $(SYN_SRC)
 	rm -f system.prj
 	@for i in `echo $^`; do \
-	    echo "verilog worlk $$i" >> system.prj; \
+		echo "verilog worlk $$i" >> system.prj; \
 	done
 
 system.ngc: system.prj

@@ -1,4 +1,3 @@
-// Listing 11.1
 module sram_ctrl
    (
     input wire clk, reset,
@@ -17,6 +16,7 @@ module sram_ctrl
     output wire  ce_a_n,
     output wire  ub_a_n,
     output wire  lb_a_n,
+    // busdriver
     output wire  bus_tr1,
     output wire  bus_oe_n1,
     output wire  bus_tr2,
