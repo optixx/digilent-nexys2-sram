@@ -40,6 +40,10 @@ initial begin
     reset <= 1'b0;
     sw_reg <= 8'b0;
     btn_reg <= 3'b0;
+    reset = 1'b1;
+    #tck
+    reset = 1'b0;
+
 end
 
 // the device under testing
@@ -74,41 +78,22 @@ end
 initial begin
     $dumpfile("system_tb.vcd");
     $dumpvars(0, dut);
+
     #tck
-    reset = 1'b1;
-    #tck
-    reset = 1'b0;
-    #tck
+
+    // Set address
     sw_reg = 8'haa;
     btn_reg = 3'b001;
+    #(8*tck)
 
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-
+    // Set data
     sw_reg = 8'hff;
     btn_reg = 3'b010;
+    #(8*tck)
 
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-
+    // Read back
     btn_reg = 3'b100;
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
-    #tck
+    #(8*tck)
 
     $finish;
 end
